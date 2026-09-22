@@ -1,100 +1,94 @@
-const questions = [
+// Master Question Bank organised by Subject
+const questionBank = {
+  chemistry: [
     {
-        question: "Which of the following organelle is known as the powerhouse of the cell?",
-        options: ["Nucleus", "Mitochondria", "Ribosome", "Endoplasmic Reticulum"],
-        answer: 1
+      question: "Which of the following elements has the highest electronegativity?",
+      options: ["Sodium", "Chlorine", "Fluorine", "Oxygen"],
+      correct: 2, // Fluorine
+      explanation: "Fluorine is the most electronegative element on the periodic table because of its high nuclear charge and small atomic radius."
     },
     {
-        question: "What is the chemical symbol for Gold?",
-        options: ["Ag", "Au", "Fe", "Pb"],
-        answer: 1
-    },
-    {
-        question: "Which unit is used to measure electrical current?",
-        options: ["Volt", "Watt", "Ampere", "Ohm"],
-        answer: 2
+      question: "What is the oxidation number of Nitrogen in HNO3?",
+      options: ["+3", "+5", "-3", "+4"],
+      correct: 1, // +5
+      explanation: "H (+1) + N + 3*O (-2) = 0  =>  1 + N - 6 = 0  =>  N = +5."
     }
-];
+  ],
+  biology: [
+    {
+      question: "Which organelle is responsible for cellular respiration and energy production?",
+      options: ["Ribosome", "Mitochondrion", "Golgi apparatus", "Endoplasmic reticulum"],
+      correct: 1, // Mitochondrion
+      explanation: "Mitochondria generate most of the chemical energy needed to power the cell's biochemical reactions."
+    }
+  ],
+  english: [
+    {
+      question: "Choose the word opposite in meaning to 'EPHEMERAL':",
+      options: ["Transient", "Permanent", "Fleeting", "Short-lived"],
+      correct: 1, // Permanent
+      explanation: "'Ephemeral' means lasting for a very short time, so 'Permanent' is the antonym."
+    }
+  ]
+};
 
+// Application State Variables
+let currentSubject = "chemistry";
 let currentQuestionIndex = 0;
-let selectedAnswers = new Array(questions.length).fill(null);
-let score = 0;
+let userAnswers = {}; // Stores user selections: { questionIndex: selectedOptionIndex }
 
-const questionNumberEl = document.getElementById("question-number");
-const questionTextEl = document.getElementById("question-text");
-const optionsContainerEl = document.getElementById("options-container");
-const prevBtn = document.getElementById("prev-btn");
-const nextBtn = document.getElementById("next-btn");
-const submitBtn = document.getElementById("submit-btn");
-const quizContainer = document.getElementById("quiz-container");
-const resultContainer = document.getElementById("result-container");
-const scoreText = document.getElementById("score-text");
-const restartBtn = document.getElementById("restart-btn");
+// Function to Load a Question onto the UI
+function loadQuestion(index) {
+  const questions = questionBank[currentSubject];
+  if (!questions || index >= questions.length) return;
 
-function loadQuestion() {
-    const currentQ = questions[currentQuestionIndex];
-    questionNumberEl.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
-    questionTextEl.textContent = currentQ.question;
-    optionsContainerEl.innerHTML = "";
+  const q = questions[index];
+  
+  // Render Question Text
+  const questionElement = document.getElementById("question-text");
+  if (questionElement) {
+    questionElement.innerText = `${index + 1}. ${q.question}`;
+  }
+  
+  // Render Options
+  const optionsContainer = document.getElementById("options-container");
+  if (optionsContainer) {
+    optionsContainer.innerHTML = ""; // Clear existing options
 
-    currentQ.options.forEach((option, index) => {
-        const button = document.createElement("button");
-        button.textContent = option;
-        button.classList.add("option-btn");
-        
-        if (selectedAnswers[currentQuestionIndex] === index) {
-            button.classList.add("selected");
-        }
+    q.options.forEach((optionText, optIndex) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerText = optionText;
 
-        button.addEventListener("click", () => selectOption(index));
-        optionsContainerEl.appendChild(button);
+      // Highlight option if user already selected it
+      if (userAnswers[index] === optIndex) {
+        btn.classList.add("selected");
+      }
+
+      btn.onclick = () => selectOption(optIndex);
+      optionsContainer.appendChild(btn);
     });
-
-    prevBtn.disabled = currentQuestionIndex === 0;
-    nextBtn.style.display = currentQuestionIndex === questions.length - 1 ? "none" : "inline-block";
-    submitBtn.style.display = currentQuestionIndex === questions.length - 1 ? "inline-block" : "none";
+  }
 }
 
-function selectOption(index) {
-    selectedAnswers[currentQuestionIndex] = index;
-    loadQuestion();
+// Function to Handle Option Selection
+function selectOption(optionIndex) {
+  userAnswers[currentQuestionIndex] = optionIndex;
+  loadQuestion(currentQuestionIndex); // Reload to update button styling
 }
 
-prevBtn.addEventListener("click", () => {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        loadQuestion();
-    }
-});
-
-nextBtn.addEventListener("click", () => {
-    if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex++;
-        loadQuestion();
-    }
-});
-
-submitBtn.addEventListener("click", calculateResult);
-
-function calculateResult() {
-    score = 0;
-    selectedAnswers.forEach((ans, index) => {
-        if (ans === questions[index].answer) {
-            score++;
-        }
-    });
-
-    quizContainer.classList.add("hidden");
-    resultContainer.classList.remove("hidden");
-    scoreText.textContent = `You scored ${score} out of ${questions.length}`;
-}
-
-restartBtn.addEventListener("click", () => {
+// Subject Switcher Event Handler
+function switchSubject(subjectName) {
+  if (questionBank[subjectName]) {
+    currentSubject = subjectName;
     currentQuestionIndex = 0;
-    selectedAnswers = new Array(questions.length).fill(null);
-    quizContainer.classList.remove("hidden");
-    resultContainer.classList.add("hidden");
-    loadQuestion();
-});
+    userAnswers = {}; // Reset answers for new test
+    loadQuestion(currentQuestionIndex);
+  }
+}
 
-loadQuestion();
+// Initial Load
+window.onload = () => {
+  loadQuestion(0);
+};
+
